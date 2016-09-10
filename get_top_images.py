@@ -20,14 +20,15 @@ __date__      = "18-07-2016"
 __license__   = "GPL3"
 __copyright__ = "Copyright © 2016 nagracks"
 
-import os
 from argparse import ArgumentParser
+import configparser
+import os
 
 # External modules
+from bs4 import BeautifulSoup
 import praw
 import requests
 import tqdm
-from bs4 import BeautifulSoup
 
 
 class TopImageRetreiver(object):
@@ -200,7 +201,33 @@ def _parse_args():
                         default='~/reddit_pics',
                         help="Destination path. By default it saves to $HOME/reddit_pics")
 
-    return parser.parse_args()
+    parser.add_argument('--config', '-c',
+                        default=None,
+                        help="configuration file")
+
+    return vars(parser.parse_args())
+
+
+def _write_config(config_path):
+    config = configparser.ConfigParser()
+    config['options'] = {'dst': '~/Pictures/reddit_pics',
+                         'limit': 15,
+                         'period': 'w',
+                         'subreddit': 'wallpapers\npics'
+                         }
+
+    with open(config_path, 'w') as configfile:
+        config.write(configfile)
+
+
+def _parse_config(config_path):
+    config = configparser.ConfigParser()
+    config.read(config_path)
+
+    # subreddits = config.get('option', 'subreddit')
+    # # http://stackoverflow.com/questions/335695/lists-in-configparser
+    # subreddits = list(filter(None, (x.strip() for x in subreddits.splitlines())))
+    return vars(config['options'])
 
 
 if __name__ == "__main__":
@@ -211,8 +238,19 @@ if __name__ == "__main__":
         os.sys.exit(1)
     signal.signal(signal.SIGINT, exit_)
 
+    _write_config('reddit_get_top_images.cfg')
+
     # Commandline args
     args = _parse_args()
+
+    # Config args
+    if args['config']:
+        config_args = _parse_config(args['config'])
+        # Overwrite any command line args with config args if a config is passed in
+        args = {**args, **config_args}
+
+    print(args)
+    os.sys.exit()
 
     for subreddit in args.subreddit:
         tir = TopImageRetreiver(subreddit, args.limit, args.period, args.dst)
