@@ -95,8 +95,8 @@ def download_it(url, tir):
         r = requests.get(url, stream=True)
         with open(save_path, 'wb') as f:
             for chunk in (tqdm.tqdm(r.iter_content(chunk_size=1024),
-                       total=(int(r.headers.get('content-length', 0)) // 1024),
-                       unit='KB')):
+                          total=(int(r.headers.get('content-length', 0)) // 1024),
+                          unit='KB')):
                 if chunk:
                     f.write(chunk)
                 else:
@@ -181,28 +181,28 @@ def _parse_args():
     """
     parser = ArgumentParser(description="Download top pics from any subreddit")
 
-    parser.add_argument('--subreddit', '-s', 
-            default=['earthporn', 'cityporn'], 
-            nargs='+', 
-            help="Name of the subreddit")
+    parser.add_argument('--subreddit', '-s',
+                        default=['earthporn', 'cityporn'],
+                        nargs='+',
+                        help="Name of the subreddit")
 
-    parser.add_argument('--period', '-p', 
-            default='w',
-            choices=['h', 'd', 'w', 'm', 'y', 'a'],
-            help="[h]our, [d]ay, [w]eek, [m]onth, [y]ear, or [a]ll. Period "
-                 "of time from which you want images. Default to "
-                 "'get_top_from_[w]eek'")
+    parser.add_argument('--period', '-p',
+                        default='w',
+                        choices=['h', 'd', 'w', 'm', 'y', 'a'],
+                        help="[h]our, [d]ay, [w]eek, [m]onth, [y]ear, or [a]ll. Period "
+                             "of time from which you want images. Default to "
+                             "'get_top_from_[w]eek'")
 
-    parser.add_argument('--limit', '-l', 
-            metavar='N', 
-            type=int,
-            default=15, 
-            help="Maximum URL limit per subreddit. Defaults to 15")
+    parser.add_argument('--limit', '-l',
+                        metavar='N',
+                        type=int,
+                        default=15,
+                        help="Maximum URL limit per subreddit. Defaults to 15")
 
-    parser.add_argument('--destination', '-d', 
-            dest='dst', 
-            default='~/reddit_pics', 
-            help="Destination path. By default it saves to $HOME/reddit_pics")
+    parser.add_argument('--destination', '-d',
+                        dest='dst',
+                        default='~/reddit_pics',
+                        help="Destination path. By default it saves to $HOME/reddit_pics")
 
     return parser.parse_args()
 
@@ -210,6 +210,7 @@ def _parse_args():
 if __name__ == "__main__":
     # Handle control+c nicely
     import signal
+
     def exit_(signum, frame):
         os.sys.exit(1)
     signal.signal(signal.SIGINT, exit_)
