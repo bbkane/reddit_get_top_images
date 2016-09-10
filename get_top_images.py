@@ -21,7 +21,6 @@ __license__   = "GPL3"
 __copyright__ = "Copyright © 2016 nagracks"
 
 import os
-import random
 from argparse import ArgumentParser
 
 # External modules
@@ -103,17 +102,14 @@ def download_it(url, tir):
                     return
 
 
-def _make_path(filename, dst=''):
+def _make_path(filename, dst='~/reddit_pics'):
     """Make download path
 
     :filename: str, name of file which ends the path
     :dst: str, destination path, default to ''
     :returns: str, full filename path
     """
-    if dst:
-        path = os.path.expanduser(dst)
-    else:
-        path = os.path.expanduser('~/reddit_pics')
+    path = os.path.expanduser(dst)
 
     os.makedirs(path, exist_ok=True)
     save_path = os.path.join(path, filename)
