@@ -20,14 +20,16 @@ __date__      = "18-07-2016"
 __license__   = "GPL3"
 __copyright__ = "Copyright © 2016 nagracks"
 
+import argparse
+import json
 import os
-from argparse import ArgumentParser
+import sys
 
 # External modules
+from bs4 import BeautifulSoup
 import praw
 import requests
 import tqdm
-from bs4 import BeautifulSoup
 
 
 class TopImageRetreiver(object):
@@ -66,6 +68,101 @@ class TopImageRetreiver(object):
         # self.timeframe, gets top from the week
         get_top = self.timeframe.get(self.period)(limit=self.limit)
         return _yield_urls(get_top)
+
+
+class Options:
+
+    def __init__(self):
+
+        defaults = self.get_defaults()
+        args = self.get_args()
+        if 'config' in args:
+            config_path = os.path.expanduser(args['config'])
+            config = self.get_config(config_path)
+        else:
+            config = {}
+
+        # override the defaults with any config then with any arguments
+        options = {**defaults, **config, **args}
+
+        if options.get('write_config', None):
+            # remove the write_config option
+            # so the script doesn't print the config and exit on next run
+            options.pop('write_config')
+
+            # remove the 'config' option.
+            # because we only support the config option being passed in
+            # as an argument
+            options.pop('config', None)
+
+            print(json.dumps(options, sort_keys=True, indent=4))
+            sys.exit(0)
+
+        self.options = argparse.Namespace(**options)
+
+    def get_defaults(self):
+        return dict(subreddit=['earthporn', 'cityporn'],
+                    period='w',
+                    limit=15,
+                    config=None,
+                    write_config=False,
+                    destination='~/reddit_pics')
+
+    def get_config(self, config_path):
+        with open(config_path, 'r') as config_file:
+            config = json.load(config_file)
+
+            # Make sure all keys in the config are valid
+            # so there are less confusing user errors
+            bad_options = set(config.keys()) - set(self.get_defaults().keys())
+            if bad_options:
+                raise SystemExit('Bad options in %s: %r' % (config_path, bad_options))
+
+            return config
+
+    def get_args(self):
+        """Parse args with argparse
+        :returns: args
+        """
+
+        # Note: due to the option handling,
+        # default options should be specified in get_defaults()
+        # This lets arguments override config options override the defaults
+        parser = argparse.ArgumentParser(description="Download top pics from any subreddit")
+
+        parser.add_argument('--subreddit', '-s',
+                            nargs='+',
+                            help="Name of the subreddit")
+
+        parser.add_argument('--period', '-p',
+                            choices=['h', 'd', 'w', 'm', 'y', 'a'],
+                            help="[h]our, [d]ay, [w]eek, [m]onth, [y]ear, or [a]ll. Period "
+                                 "of time from which you want images. Default to "
+                                 "'get_top_from_[w]eek'")
+
+        parser.add_argument('--limit', '-l',
+                            metavar='N',
+                            type=int,
+                            help="Maximum URL limit per subreddit. Defaults to 15")
+
+        parser.add_argument('--destination', '-d',
+                            help="Destination path. By default it saves to $HOME/reddit_pics")
+
+        parser.add_argument('--config', '-c',
+                            help="Use a JSON configuration file. Options in the file"
+                                 " will be overridden by options passed in by argument")
+
+        parser.add_argument('--write_config', '-wc',
+                            action="store_true",
+                            help="Write all script arguments to the screen in JSON form and exit. "
+                                 "Convenient for making configuration files")
+
+        # convert to a dictionary
+        args = vars(parser.parse_args())
+        # only use the args if they are not None
+        args = {key: value for (key, value) in args.items() if value}
+
+        return args
 
 
 def download_it(url, tir):
@@ -171,38 +268,6 @@ def _links_from_imgur(url):
             pass
 
 
-def _parse_args():
-    """Parse args with argparse
-    :returns: args
-    """
-    parser = ArgumentParser(description="Download top pics from any subreddit")
-
-    parser.add_argument('--subreddit', '-s',
-                        default=['earthporn', 'cityporn'],
-                        nargs='+',
-                        help="Name of the subreddit")
-
-    parser.add_argument('--period', '-p',
-                        default='w',
-                        choices=['h', 'd', 'w', 'm', 'y', 'a'],
-                        help="[h]our, [d]ay, [w]eek, [m]onth, [y]ear, or [a]ll. Period "
-                             "of time from which you want images. Default to "
-                             "'get_top_from_[w]eek'")
-
-    parser.add_argument('--limit', '-l',
-                        metavar='N',
-                        type=int,
-                        default=15,
-                        help="Maximum URL limit per subreddit. Defaults to 15")
-
-    parser.add_argument('--destination', '-d',
-                        dest='dst',
-                        default='~/reddit_pics',
-                        help="Destination path. By default it saves to $HOME/reddit_pics")
-
-    return parser.parse_args()
-
-
 if __name__ == "__main__":
     # Handle control+c nicely
     import signal
@@ -211,10 +276,10 @@ if __name__ == "__main__":
         os.sys.exit(1)
     signal.signal(signal.SIGINT, exit_)
 
-    # Commandline args
-    args = _parse_args()
+    options = Options().options
 
-    for subreddit in args.subreddit:
-        tir = TopImageRetreiver(subreddit, args.limit, args.period, args.dst)
+    for subreddit in options.subreddit:
+        tir = TopImageRetreiver(subreddit, options.limit,
+                                options.period, options.destination)
         for url in tir.get_top_submissions():
             download_it(url, tir)
