@@ -41,8 +41,8 @@ $ python get_top_images.py -s getmotivated -p w
 ```bash
 usage: get_top_images.py [-h] [--subreddit SUBREDDIT [SUBREDDIT ...]]
                          [--period {h,d,w,m,y,a}] [--limit N]
-                         [--destination DESTINATION] [--config CONFIG]
-                         [--write_config]
+                         [--destination DESTINATION] [--separate_dirs]
+                         [--config CONFIG] [--write_config]
 
 Download top pics from any subreddit
 
@@ -58,6 +58,8 @@ optional arguments:
   --destination DESTINATION, -d DESTINATION
                         Destination path. By default it saves to
                         $HOME/reddit_pics
+  --separate_dirs, -sd  Make images from different subreddits save to
+                        subfolders of destination
   --config CONFIG, -c CONFIG
                         Use a JSON configuration file. Options in the file
                         will be overridden by options passed in by argument
