@@ -106,6 +106,7 @@ class Options:
                     limit=15,
                     config=None,
                     write_config=False,
+                    separate_dirs=False,
                     destination='~/reddit_pics')
 
     def get_config(self, config_path):
@@ -147,6 +148,10 @@ class Options:
 
         parser.add_argument('--destination', '-d',
                             help="Destination path. By default it saves to $HOME/reddit_pics")
+
+        parser.add_argument('--separate_dirs', '-sd',
+                            action='store_true',
+                            help="Make images from different subreddits save to subfolders of destination")
 
         parser.add_argument('--config', '-c',
                             help="Use a JSON configuration file. Options in the file"
@@ -270,7 +275,12 @@ if __name__ == "__main__":
     options = Options().options
 
     for subreddit in options.subreddit:
+        if options.separate_dirs:
+            destination = os.path.join(options.destination, subreddit)
+        else:
+            destination = options.destination
+
         tir = TopImageRetreiver(subreddit, options.limit,
-                                options.period, options.destination)
+                                options.period, destination)
         for url in tir.get_top_submissions():
             download_it(url, tir)
