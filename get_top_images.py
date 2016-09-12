@@ -85,6 +85,9 @@ class Options:
         # override the defaults with any config then with any arguments
         options = {**defaults, **config, **args}
 
+        # convert path separators
+        options['destination'] = os.path.normpath(options['destination'])
+
         if options.get('write_config', None):
             # remove the write_config option
             # so the script doesn't print the config and exit on next run
