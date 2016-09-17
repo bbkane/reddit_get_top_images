@@ -91,7 +91,7 @@ class Options:
         if options.get('write_config', None):
             # remove the write_config option
             # so the script doesn't print the config and exit on next run
-            options.pop('write_config')
+            config_dst = options.pop('write_config')
 
             # remove the 'config' option.
             # because we only support the config option being passed in
@@ -99,6 +99,12 @@ class Options:
             options.pop('config', None)
 
             print(json.dumps(options, sort_keys=True, indent=4))
+
+            if config_dst != 'stdout':
+                # Important to specify encoding so Windows won't choke when reading it
+                with open(config_dst, 'w', encoding='utf-8') as config_file:
+                    print(json.dumps(options, sort_keys=True, indent=4), file=config_file)
+
             sys.exit(0)
 
         self.options = argparse.Namespace(**options)
@@ -108,7 +114,7 @@ class Options:
                     period='w',
                     limit=15,
                     config=None,
-                    write_config=False,
+                    write_config=None,
                     separate_dirs=False,
                     destination='~/reddit_pics')
 
@@ -157,18 +163,21 @@ class Options:
                             help="Make images from different subreddits save to subfolders of destination")
 
         parser.add_argument('--config', '-c',
+                            metavar='FILENAME',
                             help="Use a JSON configuration file. Options in the file"
                                  " will be overridden by options passed in by argument")
 
         parser.add_argument('--write_config', '-wc',
-                            action="store_true",
+                            nargs='?',
+                            metavar='FILENAME',
+                            const='stdout',  # if the flag is specified, but a file name isn't
                             help="Write all script arguments to the screen in JSON form and exit. "
-                                 "Convenient for making configuration files")
+                                 "Pass an optional filename to make a config file that you can load with the --config/-c option")
 
         # convert to a dictionary
         args = vars(parser.parse_args())
         # only use the args if they are not None
-        args = {key: value for (key, value) in args.items() if value}
+        args = {key: value for (key, value) in args.items() if value is not None}
 
         return args
 
