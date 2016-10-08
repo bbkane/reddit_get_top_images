@@ -45,12 +45,12 @@ class TopImageRetreiver(object):
     * get_top_submissions
     """
 
-    def __init__(self, subreddit='aww', limit=15, period='w', dst=''):
+    def __init__(self, subreddit='aww', limit=15, period='w', destination=''):
         r = praw.Reddit(user_agent="Get top images")
         self.subreddit = subreddit
         self.submissions = r.get_subreddit(subreddit, fetch=True)
         self.period = period
-        self.dst = dst
+        self.destination = destination
         self.limit = limit
         self.timeframe = {'h': self.submissions.get_top_from_hour,
                           'd': self.submissions.get_top_from_day,
@@ -155,7 +155,7 @@ def download_it(url, tir):
     file_name = "{name}_{chars}".format(name=tir.subreddit, chars=url_chars)
     # Make save path with condition if user has specified destination
     # path or not
-    path = os.path.expanduser(tir.dst)
+    path = os.path.expanduser(tir.destination)
     os.makedirs(path, exist_ok=True)
     save_path = os.path.join(path, file_name)
 
@@ -254,7 +254,6 @@ def _parse_args():
                         help="Maximum URL limit per subreddit. Defaults to 15")
 
     parser.add_argument('--destination', '-d',
-                        dest='dst',
                         default='~/reddit_pics',
                         help="Destination path. By default it saves to $HOME/reddit_pics")
 
@@ -276,6 +275,6 @@ if __name__ == "__main__":
     args = _parse_args()
 
     for subreddit in args.subreddit:
-        tir = TopImageRetreiver(subreddit, args.limit, args.period, args.dst)
+        tir = TopImageRetreiver(subreddit, args.limit, args.period, args.destination)
         for url in tir.get_top_submissions():
             download_it(url, tir)
