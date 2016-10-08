@@ -67,7 +67,7 @@ class TopImageRetreiver(object):
         # Take first lower letter of a provided time period
         # `self.period` and generate urls. If letter not in the
         # self.timeframe, gets top from the week
-        get_top = self.timeframe.get(self.period)(limit=self.limit)
+        get_top = self.timeframe.get(self.period)(limit=self.limit + 1)
         return _yield_urls(get_top)
 
 
@@ -143,9 +143,6 @@ class ArgumentConfig:
 def download_it(url, tir):
     """Download the url
 
-    Functions used:
-    * _make_path(filename, dst='')
-
     :url: str, downloadable url address
     :tir: cls instance of TopImageRetreiver()
     :returns: None
@@ -158,7 +155,10 @@ def download_it(url, tir):
     file_name = "{name}_{chars}".format(name=tir.subreddit, chars=url_chars)
     # Make save path with condition if user has specified destination
     # path or not
-    save_path = _make_path(file_name, tir.dst)
+    path = os.path.expanduser(tir.dst)
+    os.makedirs(path, exist_ok=True)
+    save_path = os.path.join(path, file_name)
+
     if os.path.exists(save_path):
         print("{file_name} already downloaded".format(file_name=file_name))
     else:
@@ -172,20 +172,6 @@ def download_it(url, tir):
                     f.write(chunk)
                 else:
                     return
-
-
-def _make_path(filename, dst='~/reddit_pics'):
-    """Make download path
-
-    :filename: str, name of file which ends the path
-    :dst: str, destination path, default to ''
-    :returns: str, full filename path
-    """
-    path = os.path.expanduser(dst)
-
-    os.makedirs(path, exist_ok=True)
-    save_path = os.path.join(path, filename)
-    return save_path
 
 
 def _yield_urls(submissions):
