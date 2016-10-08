@@ -1,1 +1,4 @@
 *.pyc
+*.swp
+launch_get_top_images.py
+config.json
