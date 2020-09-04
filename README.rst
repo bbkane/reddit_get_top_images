@@ -11,12 +11,22 @@ from the last hour, day, or week etc.
 The script will create a folder in your $home directory called
 `reddit_pics`.
 
+Install
+-------
+
+.. code-block:: bash
+
+    $ python3 -m venv venv
+    $ source venv/bin/activate  # On Windows, run .\venv\Scripts\activate.bat
+    $ python3 -m pip install -r requirements.txt
+
 Usage
 -----
 
 .. code-block:: bash
 
-    $ python get_top_images.py -s getmotivated -p w
+    $ source venv/bin/activate  # On Windows, run .\venv\Scripts\activate.bat
+    $ python3 get_top_images.py -s getmotivated -p w
 
 .. image:: https://zippy.gfycat.com/CelebratedLimpingFallowdeer.gif
 
